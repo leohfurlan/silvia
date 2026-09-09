@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:atos-sdd:evidence:v1",
+  "title": "Atos SDD execution evidence",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "project_root",
+    "started_at",
+    "finished_at",
+    "status",
+    "results"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "project_root": {"type": "string"},
+    "git_head": {"type": ["string", "null"]},
+    "git_dirty": {"type": "boolean"},
+    "git_status": {"type": ["string", "null"]},
+    "started_at": {"type": "string", "format": "date-time"},
+    "finished_at": {"type": "string", "format": "date-time"},
+    "requested_group": {"type": "string"},
+    "status": {"enum": ["passed", "failed", "blocked"]},
+    "results": {"type": "array"}
+  }
+}

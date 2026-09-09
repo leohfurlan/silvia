@@ -1,0 +1,22 @@
+project:
+  name: "SilvIA"
+  profile: "standard"
+  harness_version: 1
+
+sources:
+  development: DEVELOPMENT.md
+  domain: CONTEXT.md
+  decisions: docs/adr
+  authorization: docs/agents/authorization.md
+  product_requirements: docs/product/PRD.md
+  specifications: docs/specs
+
+states:
+  - proposed
+  - approved
+  - implemented
+  - tested
+  - reviewed
+  - integrated
+  - delivered
+  - blocked

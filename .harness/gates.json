@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "profile": "standard",
+  "working_directory": ".",
+  "groups": {
+    "fast": [
+    "python -m unittest discover -s tests -p test_workflow.py"
+],
+    "full": [
+    "bash tests/test_skill.sh"
+],
+    "architecture": []
+  }
+}
