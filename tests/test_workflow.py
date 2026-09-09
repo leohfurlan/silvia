@@ -1,6 +1,9 @@
 import unittest
+from pathlib import Path
 
+from workflow.config import WorkflowConfig
 from workflow.contracts import parse_plan, parse_pr_draft, parse_review
+from workflow.engine import _validate_plan
 
 
 class WorkflowContractsTest(unittest.TestCase):
@@ -13,6 +16,35 @@ class WorkflowContractsTest(unittest.TestCase):
         )
         self.assertEqual(plan.work_items[1].dependencies, ("a",))
         self.assertEqual(plan.work_items[0].owned_paths, ("a.py",))
+        self.assertEqual(plan.work_items[0].context_class, "standard")
+        self.assertEqual(plan.work_items[0].model, "qwen3.8-flash")
+
+    def test_large_context_is_routed_to_deepseek(self):
+        plan = parse_plan(
+            '{"summary":"x","work_items":['
+            '{"id":"a","purpose":"broad task","owned_paths":["a.py"],'
+            '"context_class":"large","model":"deepseek-v4-flash"}]}'
+        )
+        self.assertEqual(plan.work_items[0].context_class, "large")
+        _validate_plan(plan, WorkflowConfig(repo=Path.cwd(), api_key="test"))
+
+    def test_large_context_rejects_non_deepseek(self):
+        plan = parse_plan(
+            '{"summary":"x","work_items":['
+            '{"id":"a","purpose":"broad task","owned_paths":["a.py"],'
+            '"context_class":"large","model":"qwen3.8-flash"}]}'
+        )
+        with self.assertRaisesRegex(ValueError, "must use deepseek-v4-flash"):
+            _validate_plan(plan, WorkflowConfig(repo=Path.cwd(), api_key="test"))
+
+    def test_deepseek_is_rejected_for_standard_context(self):
+        plan = parse_plan(
+            '{"summary":"x","work_items":['
+            '{"id":"a","purpose":"small task","owned_paths":["a.py"],'
+            '"model":"deepseek-v4-flash"}]}'
+        )
+        with self.assertRaisesRegex(ValueError, "reserved for large-context"):
+            _validate_plan(plan, WorkflowConfig(repo=Path.cwd(), api_key="test"))
 
     def test_plan_rejects_unknown_dependency(self):
         with self.assertRaises(ValueError):

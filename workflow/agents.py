@@ -7,7 +7,7 @@ from typing import Any
 from langchain_openai import ChatOpenAI
 
 from .config import WorkflowConfig
-from .observability import NullObserver, Observer, WorkflowEvent
+from .observability import NullObserver, Observer, WorkflowEvent, _safe_tool_output
 from .tools import workspace_tools
 
 
@@ -61,7 +61,9 @@ async def _stream_agent(agent: Any, payload: dict[str, Any], observer: Observer,
         elif event_name == "on_tool_start":
             await observer.emit(WorkflowEvent("tool_started", role, model, task_id, str(event.get("name", "tool"))))
         elif event_name == "on_tool_end":
-            await observer.emit(WorkflowEvent("tool_finished", role, model, task_id, str(event.get("name", "tool"))))
+            tool_name = str(event.get("name", "tool"))
+            output = data.get("output", "")
+            await observer.emit(WorkflowEvent("tool_finished", role, model, task_id, tool_name, payload={"return": _safe_tool_output(output)}))
         elif event_name in {"on_chat_model_end", "on_chain_end"}:
             candidate = _text(data.get("output"))
             if candidate:
@@ -110,7 +112,7 @@ def orchestrator_prompt() -> str:
     return """You are the workflow orchestrator. Plan only; do not edit files.
 Return JSON with exactly: summary, acceptance_criteria, work_items.
 Each work item has id, purpose, owned_paths, dependencies, verification, model.
-Every implementation item must use only gpt-5.6-luna or glm-5.3-flash. Prefer the configured coder handler. Split independent work into
+Every implementation item must use qwen3.8-flash, glm-5.3-flash, or deepseek-v4-flash. Add context_class to every item: use standard for ordinary work and large only for work that requires unusually broad repository/document context. Large items must use deepseek-v4-flash because it consumes paid Credits; standard items must use Qwen or GLM. Prefer Qwen or GLM unless large context is genuinely required. Split independent work into
 disjoint owned_paths so the controller can run items in parallel. Respect the
 SDD sequence: approved requirements/spec/contract/plan, implementation,
 verification evidence, review, and separately authorised PR. If required

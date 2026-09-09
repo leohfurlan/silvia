@@ -48,7 +48,7 @@ def main() -> int:
     observer: Observer = CompositeObserver(observers) if observers else NullObserver()
     try:
         result = asyncio.run(WorkflowRunner(config, observer).run(args.objective))
-    except (RuntimeError, ValueError) as exc:
+    except Exception as exc:
         parser.error(str(exc))
     print(
         json.dumps(

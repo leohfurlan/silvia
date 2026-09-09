@@ -1,6 +1,6 @@
 ---
 name: astra
-description: Use GPT-6 Astra only as the orchestrator for a task, then execute implementation with GPT-5.6 Luna or GLM 5.3 Flash handlers. Use when the user invokes $astra or asks Astra to orchestrate Codex agents.
+description: Use GPT-6 Astra only as the orchestrator for a task, then execute implementation with Qwen3.8-Flash, GLM 5.3 Flash, or DeepSeek-V4-Flash handlers. Use when the user invokes $astra or asks Astra to orchestrate Codex agents.
 ---
 
 # Astra orchestrator
@@ -12,11 +12,11 @@ to the user.
 ## Invocation
 
 Treat everything after $astra as the objective. GPT-6 Astra always owns
-orchestration. Implementation handlers are restricted to GPT-5.6 Luna and GLM
-5.3 Flash:
+orchestration. Implementation handlers are restricted to Qwen3.8-Flash, GLM 5.3 Flash, and
+DeepSeek-V4-Flash:
 
 - $astra build the feature
-- $astra debug this; handler: gpt-5.6-luna
+- $astra debug this; handler: qwen3.8-flash
 - $astra refactor this; handler: glm-5.3-flash
 
 Model names are requests, not guesses. Before dispatch, inspect the current
@@ -27,8 +27,9 @@ otherwise report the blocker.
 
 The handlers have distinct responsibilities:
 
-- GPT-5.6 Luna: normal implementation, review, and bounded code changes.
+- Qwen3.8-Flash: normal implementation, review, and bounded code changes.
 - GLM 5.3 Flash: loops, repeated iteration, and high-throughput mechanical work.
+- DeepSeek-V4-Flash: unusually broad repository or document context only; this route consumes paid Credits.
 
 The GLM route is the OpenAI-compatible B.AI endpoint from the supplied reference
 script: base URL https://api.b.ai/v1, model glm-5.3-flash, and credential
@@ -40,9 +41,11 @@ When the user did not explicitly choose an allowed route, use this classifier:
 - loop construction, repeated iteration, or high-throughput mechanical work:
   use a callable handler pinned to glm-5.3-flash;
 - ordinary implementation, review, or bounded code changes:
-  use a callable handler pinned to gpt-5.6-luna;
+  use a callable handler pinned to qwen3.8-flash;
+- unusually broad repository or document context:
+  use a callable handler pinned to deepseek-v4-flash; this route consumes paid Credits and is reserved for genuinely large-context work;
 - research, planning, and verification support: choose by normal task fit,
-  while all code-writing nodes still use one of the two allowed handlers.
+  while all code-writing nodes still use one of the three allowed handler routes.
 
 Prefer an exposed agent type that pins both model and provider. Never infer
 callability from a config file or send a raw model override across providers.
@@ -62,7 +65,7 @@ the full model catalog unless asked.
 4. Require a bounded task graph with role, model or handler type, owned files
    or responsibility, dependencies, expected output, verification, and a stop
    condition for every node. Reject any implementation node assigned to a model
-   other than GPT-5.6 Luna or GLM 5.3 Flash.
+   other than Qwen3.8-Flash, GLM 5.3 Flash, or DeepSeek-V4-Flash.
 5. Validate the graph against the actual task and current tools. Codex has final
    responsibility for safety and scope. Do not execute invented models, unsafe
    actions, or work outside the user's request.

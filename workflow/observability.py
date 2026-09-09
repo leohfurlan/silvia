@@ -4,11 +4,12 @@ from __future__ import annotations
 
 import asyncio
 import json
+import re
 import sys
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import TextIO
+from typing import Any, TextIO
 
 
 @dataclass(frozen=True)
@@ -35,8 +36,22 @@ class NullObserver(Observer):
         return None
 
 
+def _display_timestamp() -> str:
+    return datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+
+
+def _safe_tool_output(value: Any, limit: int = 1000) -> str:
+    text = value if isinstance(value, str) else json.dumps(value, ensure_ascii=False, default=str)
+    text = re.sub(r"(?im)^\s*(APIKEY_B_AI|BAI_API_KEY|OPENAI_API_KEY|SECRET_KEY|[A-Z0-9_]*(?:TOKEN|PASSWORD|SECRET|PRIVATE_KEY)[A-Z0-9_]*)\s*=.*$", r"\1=[REDACTED]", text)
+    text = re.sub(r"-----BEGIN [^-]+ PRIVATE KEY-----.*?-----END [^-]+ PRIVATE KEY-----", "[PRIVATE_KEY_REDACTED]", text, flags=re.DOTALL)
+    text = text.replace("\r", "").replace("\n", "\\n")
+    if len(text) > limit:
+        return text[:limit] + "… [truncated]"
+    return text
+
+
 class LiveObserver(Observer):
-    """Render progress without exposing hidden model reasoning."""
+    """Render timestamped progress without exposing hidden model reasoning."""
 
     def __init__(self, stream: TextIO | None = None):
         self.stream = stream or sys.stderr
@@ -45,10 +60,11 @@ class LiveObserver(Observer):
 
     async def emit(self, event: WorkflowEvent) -> None:
         label = event.role if not event.task_id else f"{event.role}:{event.task_id}"
+        stamp = _display_timestamp()
         async with self._lock:
             if event.kind == "token":
                 if label not in self._open_streams:
-                    self.stream.write(f"[{label}] ")
+                    self.stream.write(f"[{stamp}] [{label}] retorno: ")
                     self._open_streams.add(label)
                 self.stream.write(event.message)
             else:
@@ -56,17 +72,18 @@ class LiveObserver(Observer):
                     self.stream.write("\n")
                     self._open_streams.discard(label)
                 if event.kind == "agent_started":
-                    self.stream.write(f"[{label}] iniciado\n")
+                    self.stream.write(f"[{stamp}] [{label}] iniciado\n")
                 elif event.kind == "agent_finished":
-                    self.stream.write(f"[{label}] concluído\n")
+                    self.stream.write(f"[{stamp}] [{label}] concluído\n")
                 elif event.kind == "agent_failed":
-                    self.stream.write(f"[{label}] FALHOU: {event.message}\n")
+                    self.stream.write(f"[{stamp}] [{label}] FALHOU: {event.message}\n")
                 elif event.kind == "stage":
-                    self.stream.write(f"[{label}] {event.message}\n")
+                    self.stream.write(f"[{stamp}] [{label}] {event.message}\n")
                 elif event.kind == "tool_started":
-                    self.stream.write(f"[{label}] ferramenta: {event.message}\n")
+                    self.stream.write(f"[{stamp}] [{label}] ferramenta iniciada: {event.message}\n")
                 elif event.kind == "tool_finished":
-                    self.stream.write(f"[{label}] ferramenta concluída: {event.message}\n")
+                    result = event.payload.get("return", "")
+                    self.stream.write(f"[{stamp}] [{label}] retorno de {event.message}: {result}\n")
             self.stream.flush()
 
 

@@ -33,13 +33,13 @@ class WorkflowConfig:
         default_factory=lambda: _env("WORKFLOW_ORCHESTRATOR_MODEL", "glm-5.3-flash")
     )
     coder_model: str = field(
-        default_factory=lambda: _env("WORKFLOW_CODER_MODEL", "gpt-5.6-luna")
+        default_factory=lambda: _env("WORKFLOW_CODER_MODEL", "qwen3.8-flash")
     )
     reviewer_model: str = field(
-        default_factory=lambda: _env("WORKFLOW_REVIEWER_MODEL", "gpt-5.6-luna")
+        default_factory=lambda: _env("WORKFLOW_REVIEWER_MODEL", "glm-5.3-flash")
     )
     pr_model: str = field(
-        default_factory=lambda: _env("WORKFLOW_PR_MODEL", "gpt-5.6-luna")
+        default_factory=lambda: _env("WORKFLOW_PR_MODEL", "qwen3.8-flash")
     )
     max_parallel: int = 3
     max_review_rounds: int = 2
@@ -97,11 +97,13 @@ class WorkflowConfig:
             raise ValueError("--head-branch is required with --open-pr")
         if not self.base_url.startswith("https://"):
             raise ValueError("base_url must use HTTPS")
-        allowed_handlers = {"gpt-5.6-luna", "glm-5.3-flash"}
+        allowed_handlers = {"qwen3.8-flash", "glm-5.3-flash", "deepseek-v4-flash"}
         for role, model in (
             ("coder", self.coder_model),
             ("reviewer", self.reviewer_model),
             ("pr", self.pr_model),
         ):
             if model not in allowed_handlers:
-                raise ValueError(f"{role} model must be gpt-5.6-luna or glm-5.3-flash")
+                raise ValueError(
+                    f"{role} model must be qwen3.8-flash, glm-5.3-flash, or deepseek-v4-flash"
+                )

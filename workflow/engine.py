@@ -36,10 +36,14 @@ def _overlap(left: str, right: str) -> bool:
 
 
 def _validate_plan(plan: TaskPlan, config: WorkflowConfig) -> None:
-    allowed_models = {"gpt-5.6-luna", "glm-5.3-flash"}
+    allowed_models = {"qwen3.8-flash", "glm-5.3-flash", "deepseek-v4-flash"}
     for index, left in enumerate(plan.work_items):
         if left.model not in allowed_models:
             raise ValueError(f"Implementation item {left.id} uses non-handler model {left.model}")
+        if left.context_class == "large" and left.model != "deepseek-v4-flash":
+            raise ValueError(f"Large-context item {left.id} must use deepseek-v4-flash")
+        if left.model == "deepseek-v4-flash" and left.context_class != "large":
+            raise ValueError(f"DeepSeek is reserved for large-context item {left.id}")
         for right in plan.work_items[index + 1 :]:
             if any(_overlap(a, b) for a in left.owned_paths for b in right.owned_paths):
                 raise ValueError(f"Work items {left.id} and {right.id} have overlapping ownership")
@@ -56,7 +60,7 @@ async def _parallel_coders(
 
     async def run(item: WorkItem) -> tuple[str, str]:
         async with semaphore:
-            prompt = f"Task:\n{item.purpose}\n\nOwned paths: {', '.join(item.owned_paths)}\n\nContext:\n{context}"
+            prompt = f"Task:\n{item.purpose}\n\nOwned paths: {', '.join(item.owned_paths)}\n\nContext class: {item.context_class}\n\nContext:\n{context}"
             output = await invoke_agent(
                 config,
                 model_name=item.model,
@@ -94,7 +98,7 @@ async def _parallel_reviews(
                 config,
                 model_name=config.reviewer_model,
                 system_prompt=reviewer_prompt(),
-                user_prompt=f"Review item {item.id}: {item.purpose}\n\nContext:\n{context}",
+                user_prompt=f"Review item {item.id}: {item.purpose}\n\nContext class: {item.context_class}\n\nContext:\n{context}",
                 tools=tools_for(config, item.owned_paths, writable=False),
                 observer=observer,
                 role="reviewer",

@@ -15,7 +15,8 @@ class WorkItem:
     owned_paths: tuple[str, ...]
     dependencies: tuple[str, ...] = ()
     verification: tuple[str, ...] = ()
-    model: str = "gpt-5.6-luna"
+    context_class: str = "standard"
+    model: str = "qwen3.8-flash"
 
 
 @dataclass(frozen=True)
@@ -59,8 +60,12 @@ def _json_object(text: str) -> dict[str, Any]:
 def _strings(value: Any, field_name: str) -> tuple[str, ...]:
     if value is None:
         return ()
+    if isinstance(value, str):
+        if not value.strip():
+            raise ValueError(f"{field_name} must not be empty")
+        return (value.strip(),)
     if not isinstance(value, list) or not all(isinstance(item, str) and item.strip() for item in value):
-        raise ValueError(f"{field_name} must be a list of non-empty strings")
+        raise ValueError(f"{field_name} must be a string or a list of non-empty strings")
     return tuple(item.strip() for item in value)
 
 
@@ -79,6 +84,9 @@ def parse_plan(text: str) -> TaskPlan:
         paths = _strings(raw.get("owned_paths"), "owned_paths")
         if not paths:
             raise ValueError("Every work item must own at least one path")
+        context_class = str(raw.get("context_class", "standard")).strip().lower()
+        if context_class not in {"standard", "large"}:
+            raise ValueError("context_class must be standard or large")
         items.append(
             WorkItem(
                 id=raw["id"].strip(),
@@ -86,7 +94,8 @@ def parse_plan(text: str) -> TaskPlan:
                 owned_paths=paths,
                 dependencies=_strings(raw.get("dependencies"), "dependencies"),
                 verification=_strings(raw.get("verification"), "verification"),
-                model=str(raw.get("model", "gpt-5.6-luna")).strip(),
+                context_class=context_class,
+                model=str(raw.get("model", "qwen3.8-flash")).strip(),
             )
         )
     ids = {item.id for item in items}

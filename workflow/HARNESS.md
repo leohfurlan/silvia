@@ -29,6 +29,6 @@ The controller preserves these authorizations as separate actions:
 - Migration, deployment, merge, and operational effects remain outside the workflow.
 
 The orchestrator must return `work_items` with `id`, `purpose`,
-`owned_paths`, `dependencies`, `verification`, and `model`. The controller
+`owned_paths`, `dependencies`, `verification`, `context_class`, and `model`. The controller
 rejects duplicate IDs, cycles, unknown dependencies, overlapping ownership,
-and handler models outside GPT-5.6 Luna and GLM 5.3 Flash.
+and handler models outside Qwen3.8-Flash, GLM 5.3 Flash, and DeepSeek-V4-Flash. DeepSeek is valid only for work items classified as large context.

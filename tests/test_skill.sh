@@ -35,7 +35,7 @@ bash -n "$repo_root/install.sh"
 required_strings=(
   'GPT-6 Astra'
   'gpt-6-astra'
-  'GPT-5.6 Luna'
+  'Qwen3.8-Flash'
   'GLM 5.3 Flash'
   'glm-5.3-flash'
   'BAI_API_KEY'
@@ -61,7 +61,7 @@ fi
 
 rg -Fq 'viewBox="0 0 1200 600"' "$svg_path" || fail 'SVG viewBox is not 0 0 1200 600'
 rg -Fq 'ASTRA' "$svg_path" || fail 'SVG is missing the Astra planning node'
-rg -Fq 'GPT-5.6 LUNA' "$svg_path" || fail 'SVG is missing the Luna worker node'
+rg -Fq 'QWEN3.8-FLASH' "$svg_path" || fail 'SVG is missing the Qwen worker node'
 rg -Fq 'GLM 5.3 FLASH' "$svg_path" || fail 'SVG is missing the GLM worker node'
 if rg -n -i 'gradient|<filter([[:space:]>]|$)|<image([[:space:]>]|$)|url\(|@font-face|@import|fonts\.(googleapis|gstatic)|href=[^[:space:]]*(https?:|//)' "$svg_path"; then
   fail 'SVG contains a gradient, filter, external image, or external font reference'
