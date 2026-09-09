@@ -4,8 +4,9 @@ Astra is a small, local-first routing skill for Codex. GPT-6 Astra plans and
 adjudicates; it does not write code or own the workspace. Codex remains the
 runtime and delegates bounded implementation work to callable handlers:
 
-- GPT-5.6 Luna handles normal implementation.
+- Qwen3.8-Flash handles normal implementation.
 - GLM 5.3 Flash handles loops, repeated iteration, and high-throughput work.
+- DeepSeek-V4-Flash handles only unusually large-context implementation items and consumes paid Credits.
 - GPT-6 Astra remains outside the implementation graph for planning and final
   adjudication.
 
@@ -67,16 +68,16 @@ Invoke the skill with an objective:
 
 To choose a handler explicitly:
 
-    $astra implement the feature; handler: gpt-5.6-luna
+    $astra implement the feature; handler: qwen3.8-flash
     $astra repeat this migration across all files; handler: glm-5.3-flash
 
 Astra returns a bounded task graph. Codex validates it, starts callable
 handlers, collects evidence, runs verification, and asks Astra to adjudicate
-when another decision is needed. GPT-5.6 Luna is preferred for ordinary
+when another decision is needed. Qwen3.8-Flash is preferred for ordinary
 implementation. GLM 5.3 Flash is preferred for loops and high-throughput
 mechanical work.
 
-The runtime must expose both handler routes as callable. The skill does not
+The runtime must expose the handler routes as callable. DeepSeek is selected only for large-context items. The skill does not
 invent provider aliases or silently substitute another model when a route is
 unavailable.
 
@@ -104,3 +105,20 @@ string scans.
 ## License
 
 MIT. See LICENSE.
+
+## LangChain implementation workflow
+
+The repository also contains `workflow/`, a standalone B.AI-backed LangChain
+runtime for the SDD workflow. It uses GLM-5.3-Flash as the default orchestrator,
+Qwen3.8-Flash as the default coder/PR handler, GLM-5.3-Flash as reviewer, and DeepSeek-V4-Flash only for large-context items; it runs independent
+work items in parallel when their file ownership is disjoint.
+
+The workflow stops at every harness boundary: a plan must validate, reviewers
+must pass, configured checks must succeed, and PR creation requires the separate
+`--open-pr` authorization. It never commits or pushes. See
+[workflow/HARNESS.md](workflow/HARNESS.md) and
+[workflow/README.md](workflow/README.md).
+
+Install its dependencies with `python -m pip install -e .`, then run:
+
+    python -m workflow.cli "Implement the selected specification" --repo . --check "bash tests/test_skill.sh"

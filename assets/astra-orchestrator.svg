@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600" role="img" aria-labelledby="title description">
   <title id="title">GPT-6 Astra orchestration flow</title>
-  <desc id="description">GPT-6 Astra plans and adjudicates, routes implementation to GPT-5.6 Luna and GLM 5.3 Flash, and receives verification evidence.</desc>
+  <desc id="description">GPT-6 Astra plans and adjudicates, routes implementation to Qwen3.8-Flash, GLM 5.3 Flash, or DeepSeek-V4-Flash for large context, and receives verification evidence.</desc>
 
   <rect width="1200" height="600" fill="#09111f"/>
 
@@ -90,13 +90,13 @@
     <circle cx="758" cy="401" r="4" fill="#56e2c1"/>
   </g>
 
-  <!-- Luna worker -->
+  <!-- Qwen worker -->
   <g font-family="Arial, Helvetica, sans-serif">
     <polygon points="806,137 831,113 1136,113 1160,137 1160,253 1136,277 831,277 806,253" fill="#102239" stroke="#5b9ee5" stroke-width="2"/>
     <rect x="833" y="138" width="9" height="113" fill="#5b9ee5"/>
     <circle cx="868" cy="151" r="6" fill="#8fc6ff"/>
     <text x="889" y="156" fill="#8fc6ff" font-size="11" font-weight="700" letter-spacing="2">WORKER / 02</text>
-    <text x="868" y="202" fill="#f2f7ff" font-size="23" font-weight="700" letter-spacing="1">GPT-5.6 LUNA</text>
+    <text x="868" y="202" fill="#f2f7ff" font-size="23" font-weight="700" letter-spacing="1">QWEN3.8-FLASH</text>
     <text x="868" y="229" fill="#a7bdd3" font-size="14">normal implementation</text>
     <rect x="1014" y="224" width="108" height="25" fill="#173458"/>
     <text x="1033" y="241" fill="#9dccff" font-size="11" font-weight="700" letter-spacing="1">IMPLEMENT</text>
@@ -137,7 +137,7 @@
     <circle cx="57" cy="550" r="5" fill="#56e2c1"/>
     <text x="72" y="555" fill="#9bb0c3" font-size="12" letter-spacing="0.8">ASTRA DECIDES</text>
     <circle cx="218" cy="550" r="5" fill="#8fc6ff"/>
-    <text x="233" y="555" fill="#9bb0c3" font-size="12" letter-spacing="0.8">LUNA BUILDS</text>
+    <text x="233" y="555" fill="#9bb0c3" font-size="12" letter-spacing="0.8">QWEN BUILDS</text>
     <circle cx="360" cy="550" r="5" fill="#56e2c1"/>
     <text x="375" y="555" fill="#9bb0c3" font-size="12" letter-spacing="0.8">GLM LOOPS</text>
     <circle cx="547" cy="550" r="5" fill="#d7a95b"/>

@@ -1,6 +1,18 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+if command -v py.exe >/dev/null 2>&1 && py.exe -3 -c "import sys" >/dev/null 2>&1; then
+  python_cmd=(py.exe -3)
+elif command -v python3 >/dev/null 2>&1 && python3 -c "import sys" >/dev/null 2>&1; then
+  python_cmd=(python3)
+elif command -v python >/dev/null 2>&1 && python -c "import sys" >/dev/null 2>&1; then
+  python_cmd=(python)
+else
+  echo 'Python 3 is required for workflow contract tests.' >&2
+  exit 127
+fi
+
+
 repo_root="$(cd -- "$(dirname -- "$0")/.." && pwd -P)"
 skill_root="$repo_root/skill/astra"
 svg_path="$repo_root/assets/astra-orchestrator.svg"
@@ -18,12 +30,12 @@ fail() {
 
 bash -n "$skill_root/scripts/ask_astra.sh"
 bash -n "$repo_root/install.sh"
-python3 -B -m py_compile "$skill_root/scripts/ask_astra.py"
+"${python_cmd[@]}" -B -m py_compile "$skill_root/scripts/ask_astra.py"
 
 required_strings=(
   'GPT-6 Astra'
   'gpt-6-astra'
-  'GPT-5.6 Luna'
+  'Qwen3.8-Flash'
   'GLM 5.3 Flash'
   'glm-5.3-flash'
   'BAI_API_KEY'
@@ -49,7 +61,7 @@ fi
 
 rg -Fq 'viewBox="0 0 1200 600"' "$svg_path" || fail 'SVG viewBox is not 0 0 1200 600'
 rg -Fq 'ASTRA' "$svg_path" || fail 'SVG is missing the Astra planning node'
-rg -Fq 'GPT-5.6 LUNA' "$svg_path" || fail 'SVG is missing the Luna worker node'
+rg -Fq 'QWEN3.8-FLASH' "$svg_path" || fail 'SVG is missing the Qwen worker node'
 rg -Fq 'GLM 5.3 FLASH' "$svg_path" || fail 'SVG is missing the GLM worker node'
 if rg -n -i 'gradient|<filter([[:space:]>]|$)|<image([[:space:]>]|$)|url\(|@font-face|@import|fonts\.(googleapis|gstatic)|href=[^[:space:]]*(https?:|//)' "$svg_path"; then
   fail 'SVG contains a gradient, filter, external image, or external font reference'
@@ -63,7 +75,7 @@ mkdir -p "$temp_home"
 dry_run_output="$temp_root/dry-run.txt"
 HOME="$temp_home" ASTRA_SKILLS_DIR= "$repo_root/install.sh" --dry-run >"$dry_run_output"
 [[ ! -e "$temp_home/.codex" ]] || fail 'dry-run created a directory under HOME'
-rg -Fq "$temp_home/.codex/skills/astra" "$dry_run_output" || fail 'dry-run omitted the default destination'
+grep -Fq "$temp_home/.codex/skills/astra" "$dry_run_output" || fail 'dry-run omitted the default destination'
 
 copy_home="$temp_root/copy-home"
 HOME="$copy_home" "$repo_root/install.sh" --copy >/dev/null
@@ -84,3 +96,11 @@ if rg -n --hidden --glob '!.git/**' --glob '!tests/test_skill.sh' \
 fi
 
 echo 'PASS: Astra orchestrator repository checks'
+
+# LangChain workflow contract checks. These remain dependency-light.
+[[ -f "$repo_root/pyproject.toml" ]] || fail 'pyproject.toml is missing'
+[[ -f "$repo_root/workflow/engine.py" ]] || fail 'workflow engine is missing'
+[[ -f "$repo_root/workflow/observability.py" ]] || fail 'workflow observability is missing'
+[[ -f "$repo_root/workflow/HARNESS.md" ]] || fail 'workflow harness contract is missing'
+"${python_cmd[@]}" -B -m py_compile "$repo_root/workflow/__init__.py" "$repo_root/workflow/agents.py" "$repo_root/workflow/cli.py" "$repo_root/workflow/config.py" "$repo_root/workflow/contracts.py" "$repo_root/workflow/engine.py" "$repo_root/workflow/observability.py" "$repo_root/workflow/tools.py"
+"${python_cmd[@]}" -B -m unittest discover -s "$repo_root/tests" -p 'test_workflow.py'

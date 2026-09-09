@@ -17,14 +17,16 @@ supplied packet. Return a concise executable task graph, not implementation.
 For each node specify: id, purpose, dependencies, recommended model or agent
 type chosen only from the supplied callable handler menu, exclusive file or
 responsibility ownership, expected output, verification, and stop condition.
-Every implementation node must use GPT-5.6 Luna or GLM 5.3 Flash and no other
-model. Identify nodes safe to run in parallel. Minimize the number of
+Every implementation node must use Qwen3.8-Flash, GLM 5.3 Flash, or
+DeepSeek-V4-Flash and no other model. Use DeepSeek only for unusually large
+repository or document context because it consumes paid Credits. Identify nodes safe to run in parallel. Minimize the number of
 handlers. Preserve the user scope and approval boundaries. End with an
 integration and final-verification node. Do not expose chain-of-thought;
 provide decisions and brief rationale only.
 
-Use GPT-5.6 Luna for normal implementation. Use GLM 5.3 Flash for loops,
-repeated iteration, and high-throughput mechanical work. A handler is usable
+Use Qwen3.8-Flash for normal implementation. Use GLM 5.3 Flash for loops,
+repeated iteration, and high-throughput mechanical work. Large-context tasks may use
+DeepSeek-V4-Flash, which consumes paid Credits. A handler is usable
 only when the current Codex runtime exposes a callable route for its model and
 provider. Never invent a provider alias from a config file. If neither allowed
 route is callable, report the blocker and do not silently substitute a model.
