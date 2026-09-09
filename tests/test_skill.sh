@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)"
-skill_root="$repo_root/skill/fable"
-svg_path="$repo_root/assets/fable-orchestrator.svg"
+repo_root="$(cd -- "$(dirname -- "$0")/.." && pwd -P)"
+skill_root="$repo_root/skill/astra"
+svg_path="$repo_root/assets/astra-orchestrator.svg"
 
 fail() {
   echo "FAIL: $*" >&2
@@ -11,22 +11,28 @@ fail() {
 }
 
 [[ -f "$skill_root/SKILL.md" ]] || fail 'SKILL.md is missing'
-[[ -f "$skill_root/scripts/ask_fable.sh" ]] || fail 'ask_fable.sh is missing'
+[[ -f "$skill_root/scripts/ask_astra.sh" ]] || fail 'ask_astra.sh is missing'
+[[ -f "$skill_root/scripts/ask_astra.py" ]] || fail 'ask_astra.py is missing'
 [[ -f "$skill_root/agents/openai.yaml" ]] || fail 'openai.yaml is missing'
-[[ -x "$skill_root/scripts/ask_fable.sh" ]] || fail 'ask_fable.sh is not executable'
+[[ -x "$skill_root/scripts/ask_astra.sh" ]] || fail 'ask_astra.sh is not executable'
 
-bash -n "$skill_root/scripts/ask_fable.sh"
+bash -n "$skill_root/scripts/ask_astra.sh"
 bash -n "$repo_root/install.sh"
+python3 -B -m py_compile "$skill_root/scripts/ask_astra.py"
 
 required_strings=(
-  'Claude Fable 5.1'
+  'GPT-6 Astra'
+  'gpt-6-astra'
   'GPT-5.6 Luna'
-  'DeepSeek V4 Flash'
-  'opencode-go/'
-  'opencode-go-responses/'
+  'GLM 5.3 Flash'
+  'glm-5.3-flash'
+  'BAI_API_KEY'
+  'APIKEY_B_AI'
+  'https://api.b.ai/v1'
+  'B.AI Responses API'
 )
 for required in "${required_strings[@]}"; do
-  rg -Fq "$required" "$skill_root/SKILL.md" || fail "missing required routing string: $required"
+  rg -Fq "$required" "$skill_root/SKILL.md" "$skill_root/scripts/ask_astra.py" "$repo_root/README.md" || fail "missing required routing string: $required"
 done
 
 awk '
@@ -42,35 +48,29 @@ if command -v xmllint >/dev/null 2>&1; then
 fi
 
 rg -Fq 'viewBox="0 0 1200 600"' "$svg_path" || fail 'SVG viewBox is not 0 0 1200 600'
-rg -Fq 'FABLE 5.1' "$svg_path" || fail 'SVG is missing the Fable planning node'
+rg -Fq 'ASTRA' "$svg_path" || fail 'SVG is missing the Astra planning node'
 rg -Fq 'GPT-5.6 LUNA' "$svg_path" || fail 'SVG is missing the Luna worker node'
-rg -Fq 'DEEPSEEK V4 FLASH' "$svg_path" || fail 'SVG is missing the DeepSeek worker node'
+rg -Fq 'GLM 5.3 FLASH' "$svg_path" || fail 'SVG is missing the GLM worker node'
 if rg -n -i 'gradient|<filter([[:space:]>]|$)|<image([[:space:]>]|$)|url\(|@font-face|@import|fonts\.(googleapis|gstatic)|href=[^[:space:]]*(https?:|//)' "$svg_path"; then
   fail 'SVG contains a gradient, filter, external image, or external font reference'
 fi
 
-temp_root="$(mktemp -d "${TMPDIR:-/tmp}/fable-orchestrator.XXXXXX")"
+temp_root="$(mktemp -d /tmp/astra-orchestrator.XXXXXX)"
 trap 'rm -rf "$temp_root"' EXIT
 temp_home="$temp_root/home"
 mkdir -p "$temp_home"
 
 dry_run_output="$temp_root/dry-run.txt"
-HOME="$temp_home" FABLE_SKILLS_DIR= "$repo_root/install.sh" --dry-run >"$dry_run_output"
+HOME="$temp_home" ASTRA_SKILLS_DIR= "$repo_root/install.sh" --dry-run >"$dry_run_output"
 [[ ! -e "$temp_home/.codex" ]] || fail 'dry-run created a directory under HOME'
-rg -Fq "$temp_home/.codex/skills/fable" "$dry_run_output" || fail 'dry-run omitted the default destination'
+rg -Fq "$temp_home/.codex/skills/astra" "$dry_run_output" || fail 'dry-run omitted the default destination'
 
 copy_home="$temp_root/copy-home"
 HOME="$copy_home" "$repo_root/install.sh" --copy >/dev/null
-for relative_path in SKILL.md scripts/ask_fable.sh agents/openai.yaml; do
-  cmp -s "$skill_root/$relative_path" "$copy_home/.codex/skills/fable/$relative_path" || fail "installed copy differs: $relative_path"
+for relative_path in SKILL.md scripts/ask_astra.sh scripts/ask_astra.py agents/openai.yaml; do
+  cmp -s "$skill_root/$relative_path" "$copy_home/.codex/skills/astra/$relative_path" || fail "installed copy differs: $relative_path"
 done
 HOME="$copy_home" "$repo_root/install.sh" --copy >/dev/null
-
-if [[ -n "${FABLE_SOURCE_DIR:-}" && -d "$FABLE_SOURCE_DIR" ]]; then
-  for relative_path in SKILL.md scripts/ask_fable.sh agents/openai.yaml; do
-    cmp -s "$skill_root/$relative_path" "$FABLE_SOURCE_DIR/$relative_path" || fail "source copy differs: $FABLE_SOURCE_DIR/$relative_path"
-  done
-fi
 
 # Keep the scan practical: this test file contains the detection patterns, so exclude it.
 if rg -n --hidden --glob '!.git/**' --glob '!tests/test_skill.sh' \
@@ -83,4 +83,4 @@ if rg -n --hidden --glob '!.git/**' --glob '!tests/test_skill.sh' \
   fail 'credential-shaped string found in repository'
 fi
 
-echo 'PASS: Fable orchestrator repository checks'
+echo 'PASS: Astra orchestrator repository checks'

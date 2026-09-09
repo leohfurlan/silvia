@@ -1,66 +1,106 @@
-# Fable orchestrator
+# Astra orchestrator
 
-Fable is a small, local-first routing skill for Codex. Claude Fable 5.1 plans and adjudicates; it does not write code or own the workspace. Codex remains the runtime and delegates bounded implementation work to OpenCode Go agents:
+Astra is a small, local-first routing skill for Codex. GPT-6 Astra plans and
+adjudicates; it does not write code or own the workspace. Codex remains the
+runtime and delegates bounded implementation work to callable handlers:
 
 - GPT-5.6 Luna handles normal implementation.
-- DeepSeek V4 Flash handles loops, repeated iteration, and high-throughput implementation.
-- Fable 5.1 remains outside the implementation graph for planning and final adjudication.
+- GLM 5.3 Flash handles loops, repeated iteration, and high-throughput work.
+- GPT-6 Astra remains outside the implementation graph for planning and final
+  adjudication.
 
-The skill consumes the callable `opencode-go/` and `opencode-go-responses/` agents supplied by Codex Router. It does not ship a proxy, dashboard, model catalog, credential store, or API key. Configure OpenCode Go once in the router, then restart Codex after changing provider or agent definitions.
+The skill calls GPT-6 Astra through the B.AI Responses API and consumes callable
+handler routes supplied by the Codex runtime. It does not ship a proxy,
+dashboard, model catalog, credential store, or API key.
 
-![Fable orchestrator: planning, implementation, and verification](assets/fable-orchestrator.svg)
+The Astra helper uses the B.AI endpoint https://api.b.ai/v1 with model
+gpt-6-astra. It accepts APIKEY_B_AI, the variable used by the supplied
+reference script, or the standard BAI_API_KEY name. The GLM handler uses the
+same B.AI endpoint with model glm-5.3-flash. The helper never prints or stores
+credentials.
+
+![Astra orchestrator: planning, implementation, and verification](assets/astra-orchestrator.svg)
 
 ## Repository layout
 
-```text
-skill/fable/
-├── SKILL.md
-├── agents/openai.yaml
-└── scripts/ask_fable.sh
-assets/fable-orchestrator.svg
-install.sh
-tests/test_skill.sh
-```
-
-The three files under `skill/fable/` are the installable skill. `ask_fable.sh` is executable and invokes Claude Code's local `fable` alias with no session persistence. The packet passed to it must contain decisions and workspace facts only; never put credentials in a packet.
+    skill/astra/
+    ├── SKILL.md
+    ├── agents/openai.yaml
+    └── scripts/
+        ├── ask_astra.sh
+        └── ask_astra.py
+    assets/astra-orchestrator.svg
+    install.sh
+    tests/test_skill.sh
 
 ## Install
 
-From this repository:
+From this repository, using Git Bash or a working WSL shell:
 
-```bash
-./install.sh --dry-run
-./install.sh --copy
-```
+    ./install.sh --dry-run
+    ./install.sh --copy
 
-`--dry-run` prints the exact destination and copy operations without creating files. `--copy` installs to `~/.codex/skills/fable`, creates only the required directories, and is safe to run again. Use `--target DIR` to select another skills directory:
+The skill is installed at ~/.codex/skills/astra. Use --target DIR to select
+another skills directory:
 
-```bash
-./install.sh --copy --target "$PWD/.local/codex/skills"
-```
+    ./install.sh --copy --target "$PWD/.local/codex/skills"
 
-The installer reads only this repository and the destination path. It never reads, creates, or modifies credentials. Start a new Codex task after changing the provider or agent definitions.
+On Windows without a working Bash shell, copy the skill/astra directory to
+C:\Users\<user>\.codex\skills\astra manually.
+
+Set the B.AI key locally before using the helper:
+
+    export APIKEY_B_AI="your-b.ai-key"
+
+Or in PowerShell:
+
+    $env:APIKEY_B_AI = "your-b.ai-key"
+
+Never put an API key in an orchestration packet or chat prompt. Start a new
+Codex task after installing or changing this skill.
 
 ## Use
 
 Invoke the skill with an objective:
 
-```text
-$fable build the feature
-```
+    $astra build the feature
 
-Fable returns a bounded graph. Codex validates the graph, starts ready workers in parallel when useful, collects their evidence, verifies the result, and asks Fable to adjudicate when the task needs another decision. Every implementation node must use GPT-5.6 Luna or DeepSeek V4 Flash. If neither allowed OpenCode Go route is callable, the workflow reports the blocker instead of inventing a model.
+To choose a handler explicitly:
+
+    $astra implement the feature; handler: gpt-5.6-luna
+    $astra repeat this migration across all files; handler: glm-5.3-flash
+
+Astra returns a bounded task graph. Codex validates it, starts callable
+handlers, collects evidence, runs verification, and asks Astra to adjudicate
+when another decision is needed. GPT-5.6 Luna is preferred for ordinary
+implementation. GLM 5.3 Flash is preferred for loops and high-throughput
+mechanical work.
+
+The runtime must expose both handler routes as callable. The skill does not
+invent provider aliases or silently substitute another model when a route is
+unavailable.
+
+## Direct helper call
+
+    printf '%s' "Plan the implementation of X" |
+      "$HOME/.codex/skills/astra/scripts/ask_astra.sh"
+
+Optional settings:
+
+- ASTRA_MODEL, default gpt-6-astra
+- ASTRA_BASE_URL, default https://api.b.ai/v1
+- ASTRA_REASONING_EFFORT, default low
+- ASTRA_MAX_OUTPUT_TOKENS, default 32768
+- ASTRA_TIMEOUT_SECONDS, default 900
 
 ## Test
 
-Run the repository's dependency-light checks:
+    tests/test_skill.sh
 
-```bash
-tests/test_skill.sh
-```
-
-The test checks shell syntax, the copied source files, required routing strings, basic YAML structure, optional `xmllint` XML validation, SVG safety constraints, a temporary-home dry run, an idempotent copy, and common credential-shaped strings. It does not require PyYAML or a live Claude login.
+The checks are dependency-light and do not call B.AI. They validate shell and
+Python syntax, installation, routing strings, SVG safety, and credential-shaped
+string scans.
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+MIT. See LICENSE.

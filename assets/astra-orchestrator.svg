@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600" role="img" aria-labelledby="title description">
-  <title id="title">Fable 5.1 orchestration flow</title>
-  <desc id="description">Fable 5.1 plans and adjudicates, routes implementation to GPT-5.6 Luna and DeepSeek V4 Flash, and receives verification evidence.</desc>
+  <title id="title">GPT-6 Astra orchestration flow</title>
+  <desc id="description">GPT-6 Astra plans and adjudicates, routes implementation to GPT-5.6 Luna and GLM 5.3 Flash, and receives verification evidence.</desc>
 
   <rect width="1200" height="600" fill="#09111f"/>
 
@@ -55,7 +55,7 @@
     <circle cx="178" cy="299" r="4" fill="#56e2c1"/>
   </g>
 
-  <!-- Fable planning core -->
+  <!-- Astra planning core -->
   <g font-family="Arial, Helvetica, sans-serif">
     <polygon points="307,197 347,167 653,167 693,197 693,382 653,412 347,412 307,382" fill="#10253a" stroke="#56e2c1" stroke-width="3"/>
     <polygon points="329,213 363,187 637,187 671,213 671,366 637,392 363,392 329,366" fill="#0b1728" stroke="#254b63" stroke-width="2"/>
@@ -68,7 +68,7 @@
     <path d="M389 243H611M389 286H611M389 329H611" fill="none" stroke="#1c3852" stroke-width="2"/>
     <path d="M389 243H454M389 286H506M389 329H473" fill="none" stroke="#56e2c1" stroke-width="3"/>
     <text x="390" y="225" fill="#56e2c1" font-size="12" font-weight="700" letter-spacing="2.4">ORCHESTRATOR / 01</text>
-    <text x="390" y="275" fill="#f2f7ff" font-size="29" font-weight="700" letter-spacing="1.4">FABLE 5.1</text>
+    <text x="390" y="275" fill="#f2f7ff" font-size="29" font-weight="700" letter-spacing="1.4">GPT-6 ASTRA</text>
     <text x="390" y="306" fill="#adc0d2" font-size="15">plan · route · adjudicate</text>
     <rect x="390" y="349" width="86" height="24" fill="#163b42"/>
     <text x="403" y="366" fill="#7df1d0" font-size="11" font-weight="700" letter-spacing="1.2">DECIDE</text>
@@ -78,7 +78,7 @@
     <text x="599" y="366" fill="#bdcbe0" font-size="11" font-weight="700" letter-spacing="1.2">REVIEW</text>
   </g>
 
-  <!-- Route from Fable to workers -->
+  <!-- Route from Astra to handlers -->
   <g fill="none" stroke-width="3">
     <path d="M708 236H758V194H806" stroke="#8fc6ff"/>
     <path d="M708 343H758V401H806" stroke="#56e2c1"/>
@@ -104,13 +104,13 @@
     <circle cx="806" cy="194" r="5" fill="#8fc6ff"/>
   </g>
 
-  <!-- DeepSeek worker -->
+  <!-- GLM handler -->
   <g font-family="Arial, Helvetica, sans-serif">
     <polygon points="806,344 831,320 1136,320 1160,344 1160,460 1136,484 831,484 806,460" fill="#102b2d" stroke="#56e2c1" stroke-width="2"/>
     <rect x="833" y="345" width="9" height="113" fill="#56e2c1"/>
     <circle cx="868" cy="358" r="6" fill="#56e2c1"/>
     <text x="889" y="363" fill="#7df1d0" font-size="11" font-weight="700" letter-spacing="2">WORKER / 03</text>
-    <text x="868" y="409" fill="#f2f7ff" font-size="21" font-weight="700" letter-spacing="0.8">DEEPSEEK V4 FLASH</text>
+    <text x="868" y="409" fill="#f2f7ff" font-size="21" font-weight="700" letter-spacing="0.8">GLM 5.3 FLASH</text>
     <text x="868" y="436" fill="#a7c9c7" font-size="14">loops · repeated work · throughput</text>
     <rect x="1014" y="447" width="108" height="25" fill="#18504e"/>
     <text x="1037" y="464" fill="#8af3d2" font-size="11" font-weight="700" letter-spacing="1">ITERATE</text>
@@ -135,13 +135,13 @@
   <!-- Footer legend -->
   <g font-family="Arial, Helvetica, sans-serif">
     <circle cx="57" cy="550" r="5" fill="#56e2c1"/>
-    <text x="72" y="555" fill="#9bb0c3" font-size="12" letter-spacing="0.8">FABLE DECIDES</text>
+    <text x="72" y="555" fill="#9bb0c3" font-size="12" letter-spacing="0.8">ASTRA DECIDES</text>
     <circle cx="218" cy="550" r="5" fill="#8fc6ff"/>
     <text x="233" y="555" fill="#9bb0c3" font-size="12" letter-spacing="0.8">LUNA BUILDS</text>
     <circle cx="360" cy="550" r="5" fill="#56e2c1"/>
-    <text x="375" y="555" fill="#9bb0c3" font-size="12" letter-spacing="0.8">DEEPSEEK LOOPS</text>
+    <text x="375" y="555" fill="#9bb0c3" font-size="12" letter-spacing="0.8">GLM LOOPS</text>
     <circle cx="547" cy="550" r="5" fill="#d7a95b"/>
     <text x="562" y="555" fill="#9bb0c3" font-size="12" letter-spacing="0.8">EVIDENCE RETURNS</text>
-    <text x="1148" y="555" text-anchor="end" fill="#526d84" font-size="11" letter-spacing="1.2">OPEN CODE GO COMPATIBLE</text>
+    <text x="1148" y="555" text-anchor="end" fill="#526d84" font-size="11" letter-spacing="1.2">OPENAI + B.AI ROUTES</text>
   </g>
 </svg>
