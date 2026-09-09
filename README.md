@@ -1,4 +1,4 @@
-# Astra orchestrator
+# SilvIA - Astra orchestrator
 
 Astra is a small, local-first routing skill for Codex. GPT-6 Astra plans and
 adjudicates; it does not write code or own the workspace. Codex remains the
