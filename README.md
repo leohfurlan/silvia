@@ -104,3 +104,20 @@ string scans.
 ## License
 
 MIT. See LICENSE.
+
+## LangChain implementation workflow
+
+The repository also contains `workflow/`, a standalone B.AI-backed LangChain
+runtime for the SDD workflow. It uses GLM-5.3-Flash as the default orchestrator,
+GPT-5.6 Luna as the default coder/reviewer/PR handler, and runs independent
+work items in parallel when their file ownership is disjoint.
+
+The workflow stops at every harness boundary: a plan must validate, reviewers
+must pass, configured checks must succeed, and PR creation requires the separate
+`--open-pr` authorization. It never commits or pushes. See
+[workflow/HARNESS.md](workflow/HARNESS.md) and
+[workflow/README.md](workflow/README.md).
+
+Install its dependencies with `python -m pip install -e .`, then run:
+
+    python -m workflow.cli "Implement the selected specification" --repo . --check "bash tests/test_skill.sh"
