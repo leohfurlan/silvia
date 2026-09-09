@@ -122,3 +122,20 @@ must pass, configured checks must succeed, and PR creation requires the separate
 Install its dependencies with `python -m pip install -e .`, then run:
 
     python -m workflow.cli "Implement the selected specification" --repo . --check "bash tests/test_skill.sh"
+
+
+## Intervenções e retomada
+
+O workflow agora pausa com uma mensagem timestamped quando encontra erro,
+mostra a ação sugerida e solicita autorização explícita para retry ou abort.
+Tarefas independentes continuam, quando possível, e o estado fica salvo em
+.workflow/sessions/<session-id>/.
+
+Para retomar uma sessão pausada:
+
+    python -m workflow.cli --repo /path/to/nexor_hub --resume <session-id> \
+      --check "uv run ruff check ." --check "uv run pytest tests/ -v"
+
+A retomada reutiliza o plano e os outputs já concluídos. Credenciais não são
+persistidas, e commit, push, PR, migration e deploy permanecem autorizações
+separadas.

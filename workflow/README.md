@@ -88,3 +88,22 @@ optional JSONL file:
 ```bash
 --events-file C:/Temp/nexor-workflow.jsonl
 ```
+
+
+## Intervenções e retomada
+
+Falhas de agente, ferramentas, fontes de verdade, revisão e verificações geram
+uma intervenção explícita. Em um terminal interativo, o CLI mostra o erro, a
+ação sugerida e aguarda retry ou abort. Tarefas paralelas independentes podem
+terminar enquanto uma tarefa aguarda intervenção.
+
+Cada execução recebe um checkpoint local em .workflow/sessions/<session-id>/,
+com state.json e interventions.jsonl. Credenciais não são gravadas. Se o
+processo sair sem autorização interativa, retome depois:
+
+    python -m workflow.cli --repo /path/to/repository --resume <session-id> \
+      --check "uv run ruff check ." --check "uv run pytest tests/ -v"
+
+O resume reutiliza o plano e os outputs dos coders concluídos; itens pendentes
+são retomados sem repetir o trabalho já registrado. Commit, push, PR, migration
+e deploy continuam sendo gates separados.

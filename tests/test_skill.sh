@@ -102,5 +102,5 @@ echo 'PASS: Astra orchestrator repository checks'
 [[ -f "$repo_root/workflow/engine.py" ]] || fail 'workflow engine is missing'
 [[ -f "$repo_root/workflow/observability.py" ]] || fail 'workflow observability is missing'
 [[ -f "$repo_root/workflow/HARNESS.md" ]] || fail 'workflow harness contract is missing'
-"${python_cmd[@]}" -B -m py_compile "$repo_root/workflow/__init__.py" "$repo_root/workflow/agents.py" "$repo_root/workflow/cli.py" "$repo_root/workflow/config.py" "$repo_root/workflow/contracts.py" "$repo_root/workflow/engine.py" "$repo_root/workflow/observability.py" "$repo_root/workflow/tools.py"
+"${python_cmd[@]}" -B -m py_compile "$repo_root/workflow/__init__.py" "$repo_root/workflow/agents.py" "$repo_root/workflow/cli.py" "$repo_root/workflow/config.py" "$repo_root/workflow/contracts.py" "$repo_root/workflow/engine.py" "$repo_root/workflow/intervention.py" "$repo_root/workflow/observability.py" "$repo_root/workflow/session.py" "$repo_root/workflow/tools.py"
 "${python_cmd[@]}" -B -m unittest discover -s "$repo_root/tests" -p 'test_workflow.py'

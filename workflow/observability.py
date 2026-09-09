@@ -77,6 +77,13 @@ class LiveObserver(Observer):
                     self.stream.write(f"[{stamp}] [{label}] concluído\n")
                 elif event.kind == "agent_failed":
                     self.stream.write(f"[{stamp}] [{label}] FALHOU: {event.message}\n")
+                elif event.kind == "intervention_required":
+                    suggestion = event.payload.get("suggested_action", "")
+                    self.stream.write(f"[{stamp}] [{label}] INTERVENCAO NECESSARIA: {event.message}\n")
+                    if suggestion:
+                        self.stream.write(f"[{stamp}] [{label}] acao sugerida: {suggestion}\n")
+                elif event.kind == "intervention_resolved":
+                    self.stream.write(f"[{stamp}] [{label}] intervencao resolvida: {event.message}\n")
                 elif event.kind == "stage":
                     self.stream.write(f"[{stamp}] [{label}] {event.message}\n")
                 elif event.kind == "tool_started":

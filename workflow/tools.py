@@ -22,20 +22,38 @@ def _relative(repo: Path, requested: str) -> Path:
     return candidate
 
 
+def _contains(candidate: Path, root: Path) -> bool:
+    try:
+        candidate.relative_to(root)
+        return True
+    except ValueError:
+        return False
+
+
 def _owned(repo: Path, requested: str, owned_paths: tuple[str, ...]) -> Path:
     candidate = _relative(repo, requested)
-    allowed = False
-    for owned_path in owned_paths:
-        root = _relative(repo, owned_path)
-        try:
-            candidate.relative_to(root)
-            allowed = True
-            break
-        except ValueError:
-            continue
-    if not allowed:
+    if not any(_contains(candidate, _relative(repo, owned_path)) for owned_path in owned_paths):
         raise ValueError(f"Path is outside this agent's ownership: {requested}")
     return candidate
+
+
+def _listing_scope(repo: Path, requested: str, owned_paths: tuple[str, ...]) -> tuple[Path, tuple[Path, ...]]:
+    target = _relative(repo, requested)
+    roots = tuple(_relative(repo, owned_path) for owned_path in owned_paths)
+    if not any(_contains(target, root) or _contains(root, target) for root in roots):
+        raise ValueError(f"Path is outside this agent's ownership: {requested}")
+    return target, roots
+
+
+def _run_git(repo: Path, *arguments: str) -> str:
+    completed = subprocess.run(
+        ["git", *arguments],
+        cwd=repo,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return completed.stdout[-8000:]
 
 
 def workspace_tools(repo: Path, owned_paths: tuple[str, ...], *, writable: bool):
@@ -49,24 +67,36 @@ def workspace_tools(repo: Path, owned_paths: tuple[str, ...], *, writable: bool)
 
     @tool
     def list_files(path: str = "") -> str:
-        """List files below an owned repository path."""
-        target = _owned(repo, path or owned_paths[0], owned_paths)
+        """List only owned files below a path or its owned ancestor scope."""
+        target, roots = _listing_scope(repo, path or owned_paths[0], owned_paths)
         if not target.exists():
             return ""
-        if target.is_file():
-            return target.relative_to(repo).as_posix()
-        files = sorted(item.relative_to(repo).as_posix() for item in target.rglob("*") if item.is_file())
+        candidates = [target] if target.is_file() else target.rglob("*")
+        files = sorted(
+            item.relative_to(repo).as_posix()
+            for item in candidates
+            if item.is_file() and any(_contains(item, root) for root in roots)
+        )
         return "\n".join(files)
 
     @tool
-    def git_diff() -> str:
-        """Return the current diff for this agent's owned paths."""
-        paths = [_normalise_for_git(path) for path in owned_paths if path not in {"", "."}]
-        command = ["git", "diff", "HEAD", "--"] + paths
-        completed = subprocess.run(command, cwd=repo, check=True, capture_output=True, text=True)
-        return completed.stdout[-12000:]
+    def git_status() -> str:
+        """Return short Git status for the repository without changing it."""
+        return _run_git(repo, "status", "--short", "--branch")
 
-    tools = [read_file, list_files, git_diff]
+    @tool
+    def git_branch() -> str:
+        """Return the current Git branch without changing the repository."""
+        return _run_git(repo, "branch", "--show-current").strip()
+
+    @tool
+    def git_diff() -> str:
+        """Return the current diff for this agent owned paths."""
+        paths = [_normalise_for_git(path) for path in owned_paths if path not in {"", "."}]
+        command = ["diff", "HEAD", "--"] + paths
+        return _run_git(repo, *command)[-12000:]
+
+    tools = [read_file, list_files, git_status, git_branch, git_diff]
 
     if writable:
         @tool

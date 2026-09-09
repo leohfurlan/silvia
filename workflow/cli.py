@@ -9,13 +9,14 @@ import sys
 from pathlib import Path
 
 from .config import WorkflowConfig
-from .engine import WorkflowRunner
+from .engine import WorkflowAborted, WorkflowPaused, WorkflowRunner
+from .intervention import ConsoleInterventionHandler
 from .observability import CompositeObserver, JsonlObserver, LiveObserver, NullObserver, Observer
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Run the B.AI LangChain implementation workflow")
-    parser.add_argument("objective", help="Implementation objective")
+    parser.add_argument("objective", nargs="?", help="Implementation objective")
     parser.add_argument("--repo", type=Path, default=Path.cwd())
     parser.add_argument("--check", action="append", default=[], help="Verification command; repeatable")
     parser.add_argument("--max-parallel", type=int, default=3)
@@ -27,7 +28,18 @@ def main() -> int:
     parser.add_argument("--open-pr", action="store_true", help="Authorize gh pr create after all gates pass")
     parser.add_argument("--no-live", action="store_true", help="Disable live progress output")
     parser.add_argument("--events-file", type=Path, help="Write structured workflow events to JSONL")
+    parser.add_argument("--session-id", help="Persist a new run under this session id")
+    parser.add_argument(
+        "--resume",
+        metavar="SESSION_ID",
+        help="Resume a paused session from <repo>/.workflow/sessions/<SESSION_ID>",
+    )
     args = parser.parse_args()
+
+    if args.resume and args.session_id:
+        parser.error("--resume and --session-id cannot be used together")
+    if not args.objective and not args.resume:
+        parser.error("an objective is required unless --resume is used")
 
     config = WorkflowConfig.from_environment(
         args.repo,
@@ -46,13 +58,30 @@ def main() -> int:
     if args.events_file:
         observers.append(JsonlObserver(args.events_file))
     observer: Observer = CompositeObserver(observers) if observers else NullObserver()
+    runner = WorkflowRunner(
+        config,
+        observer,
+        session_id=args.resume or args.session_id,
+        resume=bool(args.resume),
+        intervention_handler=ConsoleInterventionHandler(),
+    )
     try:
-        result = asyncio.run(WorkflowRunner(config, observer).run(args.objective))
+        result = asyncio.run(runner.run(args.objective or ""))
+    except WorkflowAborted as exc:
+        print(f"Workflow abortado: {exc}", file=sys.stderr)
+        return 1
+    except WorkflowPaused as exc:
+        print(f"Workflow pausado: {exc}", file=sys.stderr)
+        print("Corrija a causa e execute novamente com --resume.", file=sys.stderr)
+        return 75
     except Exception as exc:
         parser.error(str(exc))
+
     print(
         json.dumps(
             {
+                "session_id": runner.session.session_id,
+                "session_path": str(runner.session.path),
                 "plan": result.plan.summary,
                 "reviews": result.reviews,
                 "checks_ok": result.checks_ok,
