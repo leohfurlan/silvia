@@ -1,8 +1,15 @@
 """LangChain workflow runtime for the B.AI-backed agent harness."""
 
 from .config import WorkflowConfig
+from .harness import HarnessConflict, HarnessInitializationReport, initialize_standard_harness
 
-__all__ = ["WorkflowConfig", "WorkflowRunner"]
+__all__ = [
+    "HarnessConflict",
+    "HarnessInitializationReport",
+    "WorkflowConfig",
+    "WorkflowRunner",
+    "initialize_standard_harness",
+]
 
 
 def __getattr__(name: str):
