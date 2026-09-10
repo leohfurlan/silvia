@@ -18,7 +18,8 @@ carrega fontes locais, mas não instala, promove, cria junction ou publica.
 - BR04: adapters normalizam Codex/Claude e preservam campos desconhecidos.
 - BR05: validações por harness aparecem separadamente.
 - BR06: leitura de skill nunca concede execução de script.
-- BR07: script sem sidecar válido é negado; script declarado ainda passa por F02.
+- BR07: script sem sidecar válido é negado; script declarado ainda passa por F02 e pelo SandboxRunner definido no ADR-0001.
+- BR09: ausência de adapter de sandbox compatível nega execução; subprocesso direto no host nunca é fallback.
 - BR08: contexto lista arquivos, digests, truncamento e orçamento consumido.
 
 ## Edge cases

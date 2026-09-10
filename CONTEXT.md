@@ -21,6 +21,7 @@ ou outros ambientes: esses ambientes são superfícies ou adapters.
 | Apresentação do agente | Evento estruturado de identidade e responsabilidade | Informa ID, papel, modelo, objetivo, ownership, capacidades e proibições |
 | Skill | Instruções e recursos carregados explicitamente | Orienta agentes, mas não altera objetivo, gates ou autorizações |
 | Skill working-copy | Skill lida de checkout com alterações locais | Pode ser usada com origem e digest explícitos; não equivale a release |
+| Sandbox de capability | Ambiente governado que contém a execução de um script declarado por uma skill | Sem adapter compatível, a capability permanece não executável |
 | Memória | Fato, decisão, preferência ou aprendizado reutilizável | Possui proveniência e escopo; nunca concede autorização |
 | Candidato de memória | Conteúdo ainda não promovido a memória | Inferência de agente permanece proposta até validação |
 | Contexto | Pacote reproduzível entregue a um agente | Registra fontes, skills e memórias incluídas |

@@ -22,6 +22,8 @@ sessão, orçamento de custo/tokens, reconciliação ou interface de adapter.
 - BR08: duração de sessão é ilimitada, com aviso após duas horas.
 - BR09: stop é cooperativo; timeout produz resultado incerto e reconciliação.
 - BR10: provider indisponível bloqueia execução, mas não funções locais.
+- BR11: capability de skill executa somente por SandboxRunner compatível; preflight vem antes de F02 e de qualquer efeito.
+- BR12: adapter indisponível ou incapaz de aplicar filesystem, rede, plataforma, argv ou limites retorna sandbox-unavailable/sandbox-incompatible sem fallback host.
 
 ## Edge cases
 

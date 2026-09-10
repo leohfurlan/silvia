@@ -19,6 +19,7 @@ eventos F07. Astra/LangChain e futuros providers são adapters.
 | execute | ExecutionRequest + GateDecision | AttemptResult |
 | stop | agent_id + prazo | StopResult |
 | reconcile | tentativa incerta | ReconciliationResult |
+| execute_skill_capability | sessão + SkillIdentity + capability | SandboxResult ou deny |
 
 ExecutionRequest contém sessão/revisão, work item, ownership resolvido,
 AgentDescriptor, contexto fixado, orçamento e decisão F02. AgentDescriptor
@@ -32,6 +33,7 @@ contém ID, papel, model/provider, capacidades, proibições e stop condition.
 - Limite excedido pausa; não amplia orçamento.
 - Resultado incerto exige reconcile antes de retry.
 - O adapter não persiste credencial nem raciocínio oculto.
+- Capability de skill só atravessa o seam SandboxRunner quando um adapter compatível aplica toda a política declarada; caso contrário falha fechado antes do efeito.
 
 ## Compatibilidade
 

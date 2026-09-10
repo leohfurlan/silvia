@@ -8,3 +8,10 @@
 *.egg-info/
 __pycache__/
 .workflow/
+
+.silvia/
+build/
+dist/
+.venv/
+
+.scratch/
