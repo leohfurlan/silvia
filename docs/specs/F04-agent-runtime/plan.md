@@ -9,8 +9,9 @@
 4. Introduzir budgets, timeouts, tentativas e resultados incertos.
 5. Integrar decisões F02 antes de agente, ferramenta ou gasto.
 6. Integrar stop, cancelamento e reconciliação com F01.
-7. Substituir testes internos por testes na interface e provider fake.
-8. Executar integração real autorizada, gates e revisão independente.
+7. Implementar SandboxRunner fail-closed e testes de contrato com adapter indisponível e fake.
+8. Substituir testes internos por testes na interface e provider fake.
+9. Executar integração real autorizada, gates e revisão independente.
 
 Pronto significa AC01–AC09, E01–E08, compatibilidade do adapter atual e nenhuma
 rota de execução fora do HarnessEngine.

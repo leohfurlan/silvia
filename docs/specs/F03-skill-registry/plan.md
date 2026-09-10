@@ -9,8 +9,9 @@
 4. Adicionar adapters Codex e Claude com preservação de extensões.
 5. Integrar validators como diagnósticos separados.
 6. Montar SkillContext consumido por F04 e eventos F07.
-7. Integrar capabilities com F02, sem executor dentro do registry.
-8. Verificar fixtures, regressões e fonte agent-skills real em cenário de integração.
+7. Integrar capabilities com F02 e o SandboxRunner do ADR-0001, sem executor dentro do registry.
+8. Negar antes de efeito quando nenhum adapter aplicar integralmente filesystem, rede, plataforma e limites.
+9. Verificar fixtures, regressões e fonte agent-skills real em cenário de integração.
 
 Pronto significa AC01–AC07, E01–E08 e teste de consumidor F04 aprovados. Gestão
 de instalação/promoção permanece F10 e fora deste plano.

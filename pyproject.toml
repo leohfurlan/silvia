@@ -3,17 +3,26 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "bai-langchain-workflow"
-version = "0.1.0"
-description = "Parallel, SDD-gated implementation workflow using LangChain and the B.AI API"
+name = "silvia"
+version = "0.2.0"
+description = "Local-first, governed software development with durable sessions"
 requires-python = ">=3.11"
 dependencies = [
   "langchain>=1.0,<2.0",
   "langchain-openai>=1.0,<2.0",
+  "httpx>=0.27,<1",
+  "PyYAML>=6,<7",
+  "rich>=13,<15",
+  "textual>=1,<7",
+  "keyring>=25,<26",
 ]
 
 [project.scripts]
-bai-workflow = "workflow.cli:main"
+silvia = "silvia.cli:main"
+bai-workflow = "silvia.cli:legacy_main"
 
 [tool.setuptools.packages.find]
-include = ["workflow*"]
+include = ["silvia*", "workflow*"]
+
+[tool.setuptools.package-data]
+"silvia.storage" = ["*.sql"]
