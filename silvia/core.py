@@ -22,6 +22,12 @@ def encode(value: Any) -> str:
                       sort_keys=True, separators=(",", ":"), allow_nan=False)
 
 
+def encode_pretty(value: Any) -> str:
+    """Human-readable JSON with indent=4 for display in the TUI."""
+    return json.dumps(asdict(value) if is_dataclass(value) else value,
+                      ensure_ascii=False, sort_keys=True, indent=4, allow_nan=False)
+
+
 def digest(value: bytes | str) -> str:
     return hashlib.sha256(value.encode("utf-8") if isinstance(value, str) else value).hexdigest()
 
