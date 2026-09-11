@@ -143,6 +143,23 @@ class LocalCase(unittest.TestCase):
         with self.assertRaisesRegex(DomainError, "owns this checkout"):
             self.app.sessions.new_session(self.session["project_id"], "Other", ObjectiveInput("Other", ("ok",)), "direct")
 
+    def test_registering_existing_project_refreshes_git_metadata_for_worktrees(self):
+        subprocess.run(["git", "init"], cwd=self.project, check=True, capture_output=True)
+        subprocess.run(["git", "config", "user.email", "test@example.invalid"], cwd=self.project, check=True)
+        subprocess.run(["git", "config", "user.name", "Test"], cwd=self.project, check=True)
+        (self.project / "README.md").write_text("test\n")
+        subprocess.run(["git", "add", "README.md"], cwd=self.project, check=True)
+        subprocess.run(["git", "commit", "-m", "initial"], cwd=self.project, check=True, capture_output=True)
+
+        project = self.app.sessions.register_project(self.project)
+        session = self.app.sessions.new_session(
+            project["id"], "Isolated", ObjectiveInput("New goal", ("isolated checkout",))
+        )
+
+        self.assertIsNotNone(project["git_common"])
+        self.assertNotEqual(Path(session["checkout"]), self.project)
+        self.assertTrue(Path(session["checkout"]).is_dir())
+
     def test_memory_conflict_budget_and_forget(self):
         for text in ("Greeting is hello", "Greeting is goodbye"):
             memory = self.app.memory.propose(text, session_id=self.id, key="greeting")
@@ -482,6 +499,81 @@ class TUITest(unittest.IsolatedAsyncioTestCase):
                 self.assertTrue(task.cancelled())
             finally:
                 app.close()
+    async def test_create_starts_isolated_session_without_selection(self):
+        from silvia.tui import SilviaTUI
+        from textual.widgets import Button, Input
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            project = root / "project"
+            project.mkdir()
+            subprocess.run(["git", "init"], cwd=project, check=True, capture_output=True)
+            subprocess.run(["git", "config", "user.email", "test@example.invalid"], cwd=project, check=True)
+            subprocess.run(["git", "config", "user.name", "Test"], cwd=project, check=True)
+            (project / "README.md").write_text("test\n")
+            subprocess.run(["git", "add", "README.md"], cwd=project, check=True)
+            subprocess.run(["git", "commit", "-m", "initial"], cwd=project, check=True, capture_output=True)
+            app = Application(home=root / "home", project=project)
+            try:
+                tui = SilviaTUI(app)
+                async with tui.run_test(size=(200, 40)) as pilot:
+                    self.assertIsNone(tui.session_id)
+                    tui.query_one("#objective", Input).value = "Implement F01"
+                    tui.query_one("#criterion", Input).value = "Fast gates pass"
+                    tui.query_one("#create", Button).press()
+                    await pilot.pause()
+                    self.assertIsNotNone(tui.session_id)
+                    session = app.sessions.inspect_session(tui.session_id)
+                    self.assertNotEqual(Path(session["checkout"]), project)
+                    self.assertTrue(Path(session["checkout"]).is_dir())
+            finally:
+                app.close()
+
+    async def test_create_controls_stay_visible_without_a_selected_session(self):
+        from silvia.tui import SilviaTUI
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            app = Application(home=root / "home", project=root)
+            try:
+                tui = SilviaTUI(app)
+                async with tui.run_test(size=(200, 40)) as pilot:
+                    await pilot.pause()
+                    for control_id in ("objective", "criterion", "create"):
+                        control = tui.query_one("#" + control_id)
+                        self.assertLessEqual(control.region.right, tui.size.width, control_id)
+            finally:
+                app.close()
+
+    async def test_context_menu_pastes_text_copied_in_the_tui(self):
+        from silvia.tui import ContextMenu, SilviaTUI
+        from textual.widgets import Button, Input
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            app = Application(home=root / "home", project=root)
+            try:
+                tui = SilviaTUI(app)
+                async with tui.run_test(size=(200, 40)) as pilot:
+                    target = tui.query_one("#objective", Input)
+                    target.value = "copied text"
+                    copy_menu = ContextMenu(1, 1, target)
+                    tui.mount(copy_menu)
+                    await pilot.pause()
+                    copy_menu.query_one("#ctx-copy", Button).press()
+                    await pilot.pause()
+                    self.assertEqual(tui.clipboard, "copied text")
+
+                    target.value = ""
+                    paste_menu = ContextMenu(1, 1, target)
+                    tui.mount(paste_menu)
+                    await pilot.pause()
+                    paste_menu.query_one("#ctx-paste", Button).press()
+                    await pilot.pause()
+                    self.assertEqual(target.value, "copied text")
+            finally:
+                app.close()
+
     async def test_headless_mount(self):
         from silvia.tui import SilviaTUI
         with tempfile.TemporaryDirectory() as directory:

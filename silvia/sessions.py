@@ -19,6 +19,14 @@ class SessionRuntime:
         info = repository(root)
         existing = self.store.one("SELECT p.* FROM projects p JOIN locations l ON l.project_id=p.id WHERE l.path=?", (info["root"],))
         if existing:
+            refreshed = {key: info[key] for key in ("root", "git_common", "identity")}
+            if any(existing[key] != value for key, value in refreshed.items()):
+                with self.store.transaction():
+                    self.store.db.execute(
+                        "UPDATE projects SET root=:root, git_common=:git_common, identity=:identity WHERE id=:id",
+                        {"id": existing["id"], **refreshed},
+                    )
+                existing.update(refreshed)
             return existing
         common = self.store.one("SELECT * FROM projects WHERE git_common=?", (info["git_common"],)) if info["git_common"] else None
         if project_id:
