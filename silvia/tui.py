@@ -2,7 +2,7 @@
 import asyncio
 from textual.app import App, ComposeResult
 from textual.containers import Horizontal, Vertical
-from textual.events import MouseDown, Paste
+from textual.events import MouseDown
 from textual.theme import Theme
 from textual.widgets import Button, Footer, Header, Input, Select, TabbedContent, TabPane, Static, TextArea
 from silvia.core import DomainError, ObjectiveInput, encode, encode_pretty
@@ -42,7 +42,8 @@ class ContextMenu(Static):
     def compose(self) -> ComposeResult:
         with Vertical():
             yield Button("📋 Copy", id="ctx-copy")
-            yield Button("📌 Paste", id="ctx-paste")
+            if not isinstance(self._target, TextArea) or not self._target.read_only:
+                yield Button("📌 Paste", id="ctx-paste")
 
     def on_mount(self) -> None:
         self.offset = (self._x, self._y)
@@ -61,9 +62,10 @@ class ContextMenu(Static):
                 self.app.copy_to_clipboard(text)
                 self.app.query_one("#message", Static).update("Copied to clipboard.")
         elif event.button.id == "ctx-paste":
-            # Post a Paste event to the target so Textual injects clipboard content
-            if hasattr(target, "post_message"):
-                target.post_message(Paste(""))
+            # Use Textual's local clipboard, which Copy updates even when the
+            # terminal cannot expose the operating system clipboard for reading.
+            if hasattr(target, "action_paste"):
+                target.action_paste()
         self.remove()
 
     def on_mouse_down(self, event: MouseDown) -> None:
@@ -108,6 +110,14 @@ class SilviaTUI(App):
         background: #0f0f0f;
         color: #f3c647;
         border: tall #b8860b;
+    }
+    #objective, #criterion {
+        width: 1fr;
+        min-width: 20;
+    }
+    #create {
+        width: 12;
+        min-width: 12;
     }
     Input:focus {
         border: tall #f5c542;

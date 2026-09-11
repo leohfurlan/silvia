@@ -208,7 +208,9 @@ Clique com o **botão direito** sobre qualquer `TextArea` ou campo `Input`:
 | Opção | Efeito |
 |---|---|
 | 📋 **Copy** | Copia o texto selecionado (TextArea) ou o valor do campo (Input) |
-| 📌 **Paste** | Cola o conteúdo do clipboard no campo editável |
+| 📌 **Paste** | Cola o último texto copiado dentro da TUI no campo editável |
+
+> Em terminais, a TUI não pode ler o clipboard do sistema arbitrariamente. Para conteúdo externo, use o atalho de colagem do seu terminal; o menu **Paste** usa o clipboard local atualizado por **Copy**.
 
 > Clicar fora do menu fecha-o sem ação.
 
