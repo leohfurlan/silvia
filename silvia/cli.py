@@ -109,7 +109,9 @@ def parser():
     run_skill.add_argument("capability")
     run_skill.add_argument("--session")
     for name in ("tui", "watch"):
-        sub.add_parser(name, help="Open session governance TUI").add_argument("id", nargs="?")
+        cmd = sub.add_parser(name, help="Open session governance TUI")
+        cmd.add_argument("id", nargs="?")
+        cmd.add_argument("--theme", choices=["hermes", "dark"], default="hermes", help="UI theme (default: hermes)")
     sub.add_parser("doctor", help="Inspect local capabilities without provider calls")
     sub.add_parser("storage").add_argument("operation", choices=["migrate"])
     sub.add_parser("config").add_argument("operation", choices=["paths", "example"], nargs="?", default="paths")
@@ -293,7 +295,7 @@ def main(argv=None):
             if args.json or not sys.stdin.isatty():
                 raise DomainError("tty-required", "TUI requires an interactive terminal.", "Use status --json for scripting.")
             from silvia.tui import SilviaTUI
-            SilviaTUI(app, args.id).run()
+            SilviaTUI(app, args.id, theme=getattr(args, "theme", "hermes")).run()
             return 0
         display(dispatch(app, args), args.json)
         return 0

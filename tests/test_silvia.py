@@ -494,3 +494,27 @@ class TUITest(unittest.IsolatedAsyncioTestCase):
                     self.assertEqual(tui.title, "SilvIA")
             finally:
                 app.close()
+
+
+class TUIThemeTest(unittest.IsolatedAsyncioTestCase):
+    async def test_hermes_theme_and_textarea_layout(self):
+        from silvia.tui import SilviaTUI
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            app = Application(home=root / "home", project=root)
+            try:
+                tui = SilviaTUI(app, theme="hermes")
+                async with tui.run_test(size=(100, 40)) as pilot:
+                    await pilot.pause()
+                    self.assertEqual(tui.theme, "hermes")
+                    self.assertEqual(tui.query_one("#events").__class__.__name__, "TextArea")
+                    self.assertEqual(tui.query_one("#report").__class__.__name__, "TextArea")
+            finally:
+                app.close()
+
+    def test_parser_defaults_to_hermes_and_accepts_dark(self):
+        from silvia.cli import parser
+
+        self.assertEqual(parser().parse_args(["tui"]).theme, "hermes")
+        self.assertEqual(parser().parse_args(["tui", "--theme", "dark"]).theme, "dark")
